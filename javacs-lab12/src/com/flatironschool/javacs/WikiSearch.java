@@ -1,6 +1,7 @@
 package com.flatironschool.javacs;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import redis.clients.jedis.Jedis;
 
@@ -61,9 +63,19 @@ public class WikiSearch {
 	 */
 	public WikiSearch or(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		
+		Map<String,Integer> newmap = new HashMap(this.map);
+		for(String key : that.map.keySet()) {
+		    if(newmap.containsKey(key)) {
+		        newmap.put(key,totalRelevance(that.map.get(key),this.map.get(key))) ;
+		    } 
+		    else {
+		        newmap.put(key,that.map.get(key));
+		    }
+		}
+		WikiSearch o = new WikiSearch(newmap);
+		return o;
 	}
-	
 	/**
 	 * Computes the intersection of two search results.
 	 * 
@@ -72,8 +84,23 @@ public class WikiSearch {
 	 */
 	public WikiSearch and(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		System.out.println(this.map);
+		System.out.println(that.map);
+		Map newmap = new HashMap();
+	    for (Object key: this.map.keySet())
+	    {
+	        if (that.map.containsKey(key)){
+	           newmap.put(key, totalRelevance(that.map.get(key),this.map.get(key)));
+	           
+	    }
+	    }
+	    System.out.println(newmap);
+	    WikiSearch o = new WikiSearch(newmap);
+	    
+	    return o;
+		
 	}
+		
 	
 	/**
 	 * Computes the intersection of two search results.
@@ -83,7 +110,15 @@ public class WikiSearch {
 	 */
 	public WikiSearch minus(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		
+		Map<String, Integer> result = new HashMap<String, Integer>();
+		
+		result.putAll(this.map);
+		result.putAll(that.map);
+		result.entrySet().removeAll(that.map.entrySet());
+		
+		WikiSearch o = new WikiSearch(result);
+		return o;
 	}
 	
 	/**
@@ -97,6 +132,7 @@ public class WikiSearch {
 		// simple starting place: relevance is the sum of the term frequencies.
 		return rel1 + rel2;
 	}
+	
 
 	/**
 	 * Sort the results by relevance.
@@ -105,8 +141,21 @@ public class WikiSearch {
 	 */
 	public List<Entry<String, Integer>> sort() {
         // FILL THIS IN!
-		return null;
+		List<Entry<String,Integer>> result = new ArrayList<Entry<String,Integer>>() ;
+		result.addAll(map.entrySet());
+		Comparator<Entry<String, Integer>> sorter = new Comparator<Entry<String, Integer>>(){
+			@Override
+			public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {
+				return o1.getValue() - o2.getValue();
+			}
+		};
+		
+		Collections.sort(result, sorter);
+		return result;
 	}
+
+			
+
 
 	/**
 	 * Performs a search and makes a WikiSearch object.
